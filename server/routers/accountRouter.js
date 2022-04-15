@@ -40,9 +40,8 @@ router.post("/signup", async (req, res) => {
         //https://www.npmjs.com/package/validator
         //https://www.npmjs.com/package/password-validator
 
-        const passwordValidationRegex= new RegExp(
+        const passwordValidationRegex = 
             /^(?!.*\s)(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9])(?=.*[~`!@#$%^&*()--+={}\[\]|\\:;"'<>,.?/_₹]).{10,16}$/
-        )
 
         //password passes validation test
         if(passwordValidationRegex.test(creationPassword)){
@@ -66,6 +65,8 @@ router.post("/signup", async (req, res) => {
 
     } catch (error) {
         console.log(error)
+
+        //TODO: switch case
         if(error === "UserExists"){
             res.status(400).send({
                 error: "UserExists"
@@ -92,19 +93,25 @@ router.post("/signup", async (req, res) => {
 
 router.post("/login", async (req, res) => {
     //gets hashed password from db
-    const { hashed_password } = await db.get("SELECT hashed_password FROM users where email=$email", {
+    const { id, hashed_password } = await db.get("SELECT id, hashed_password FROM users where email=$email", {
         $email: req.body.email
     })
     //compares input password with hashed from database
     const isCorrectPassword = await bcrypt.compare(req.body.password, hashed_password)
 
     if(isCorrectPassword){
-        //stuff to do on successful login prob return something with res.send
-        res.send("Correct password")
+        req.session.isLoggedIn = true
+        req.session.userId = id
+
+        res.send({isLoggedIn: true})
     } else {
         //stuff to do if login is unsuccessful maybe this should be a try/catch?
-        res.send("Incorrect password")
+        res.send({error: "incorrectPassword"})
     }
+})
 
+router.post("/logout", (req, res) => {
+    req.session.destroy()
+    res.send({isLoggedIn: false})
 })
 export default router

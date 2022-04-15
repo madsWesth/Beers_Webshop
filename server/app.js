@@ -9,6 +9,19 @@ import express  from "express";
 const app = express()
 app.use(express.json())
 
+//session for auth
+import session from "express-session";
+app.use(session({
+	secret: process.env.SESSION_SECRET,
+	resave: false,
+	rolling: false,
+	saveUninitialized: false,
+	cookie: {
+		maxAge: 10 * 60 * 1000,
+		secure: false
+	}
+}))
+
 //adds security headers
 import helmet from "helmet";
 app.use(helmet())
@@ -26,7 +39,7 @@ import accountRouter from "./routers/accountRouter.js"
 app.use("/auth", accountRouter)
 
 app.get("", async (req, res) => {
-    const result = await db.all("SELECT * FROM users", (user) => user)
+    const result = await db.all("SELECT * FROM beers")
     res.send(result)
 })
 
