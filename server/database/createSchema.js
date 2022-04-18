@@ -25,7 +25,8 @@ db.exec(`
     name VARCHAR(50),
     price INTEGER NOT NULL,
     tagline VARCHAR(200),
-    description VARCHAR(700))`
+    description VARCHAR(700),
+    image_url VARCHAR(200))`
 )
 
 //50 dummy beers from https://punkapi.com/
@@ -33,11 +34,12 @@ import fetchBeers from "../utils/fetchDummyBeers.js"
 const dummyBeers = await fetchBeers()
 dummyBeers.forEach(beer => {
     db.run(`
-        INSERT INTO beers VALUES (null, $name, $price, $tagline, $description)`, {
+        INSERT INTO beers VALUES (null, $name, $price, $tagline, $description, $image_url)`, {
         $name: beer.name,
         $price: Math.floor(Math.random() * 35 + 15),
         $tagline: beer.tagline,
-        $description: beer.description
+        $description: beer.description,
+        $image_url: beer.image_url
     })
 })
 

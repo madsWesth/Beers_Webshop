@@ -5,9 +5,12 @@ import rateLimit from "express-rate-limit"
 import dotenv from "dotenv"
 dotenv.config()
 
-import express  from "express";
+import express  from "express"
 const app = express()
 app.use(express.json())
+
+import cors from "cors"
+app.use(cors())
 
 //session for auth
 import session from "express-session";
@@ -38,7 +41,7 @@ app.use("/auth", authLimiter)
 import accountRouter from "./routers/accountRouter.js"
 app.use("/auth", accountRouter)
 
-app.get("", async (req, res) => {
+app.get("/beers", async (req, res) => {
     const result = await db.all("SELECT * FROM beers")
     res.send(result)
 })

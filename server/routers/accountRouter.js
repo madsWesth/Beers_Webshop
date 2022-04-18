@@ -8,28 +8,26 @@ const saltrounds = 12
 const router = Router()
 
 router.post("/signup", async (req, res) => {
-    try{
-        const { creationEmail, creationPassword } = req.body
-
+    try {
         //check for missing data
-        if(!creationEmail) {
-            throw "MissingEmail"
+        if (!req.body.email) {
+            throw "noEmail"
         }
 
-        if(!creationPassword) {
-            throw "MissingPassword"
+        if (!req.body.password) {
+            throw "noPassword"
         }
 
         //first check if the email already exists
-        const userExists =  await db.get("SELECT * FROM users WHERE email= $email", {
-            $email: creationEmail
+        const userExists = await db.get("SELECT * FROM users WHERE email= $email", {
+            $email: req.body.email
         })
 
         //no user with email that is trying to be signed up
-        if(userExists){
-            throw "UserExists"
+        if (userExists) {
+            throw "userExists"
         }
-        
+
         //password validation; min length, lower and upper case, numbers, symbols
         //regex:
         //https://www.linkedin.com/pulse/create-strong-password-validation-regex-javascript-mitanshu-kumar
@@ -40,78 +38,104 @@ router.post("/signup", async (req, res) => {
         //https://www.npmjs.com/package/validator
         //https://www.npmjs.com/package/password-validator
 
-        const passwordValidationRegex = 
+        const passwordValidationRegex =
             /^(?!.*\s)(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9])(?=.*[~`!@#$%^&*()--+={}\[\]|\\:;"'<>,.?/_₹]).{10,16}$/
 
         //password passes validation test
-        if(passwordValidationRegex.test(creationPassword)){
-            const hashed_password = await bcrypt.hash(creationPassword, saltrounds)
-            
+        if (passwordValidationRegex.test(req.body.password)) {
+            const hashed_password = await bcrypt.hash(req.body.password, saltrounds)
+
             await db.run("INSERT INTO users (email, hashed_password) VALUES ($email, $password)", {
-                $email : creationEmail,
-                $password : hashed_password
+                $email: req.body.email,
+                $password: hashed_password
             })
         } else {
-            throw "InvalidPassword"
+            throw "invalidPassword"
         }
 
-        res.send({message: "Successfully signed up"})
+        res.send({ msg: "signupSuccess" })
 
         //thanks for signing up email
         const mailMessage = signupGreeting
-        mailMessage.to = creationEmail
+        mailMessage.to = req.body.creationEmail
         console.log(mailMessage, "mail to send, currently disabled during development")
-        //transporter.sendMail(mailMessage)
+        //TODO: transporter.sendMail(mailMessage)
 
     } catch (error) {
-        console.log(error)
-
-        //TODO: switch case
-        if(error === "UserExists"){
+        //user error
+        if (error === "noEmail") {
             res.status(400).send({
-                error: "UserExists"
+                msg: "noEmail"
             })
-        } else if(error === "InvalidPassword"){
+        } else if (error === "noPassword") {
             res.status(400).send({
-                error: "InvalidPassword"
+                msg: "noPassword"
             })
-        } else if(error === "MissingEmail"){
+        } else if (error === "userExists") {
             res.status(400).send({
-                error: "MissingEmail"
+                msg: "userExists"
             })
-        } else if(error === "MissingPassword"){
+        } else if (error === "invalidPassword") {
             res.status(400).send({
-                error: "MissingPassword"
+                msg: "invalidPassword"
             })
+            //server error
         } else {
-            console.log("lol")
             res.status(500).send({})
         }
-        
+
     }
 })
 
 router.post("/login", async (req, res) => {
-    //gets hashed password from db
-    const { id, hashed_password } = await db.get("SELECT id, hashed_password FROM users where email=$email", {
-        $email: req.body.email
-    })
-    //compares input password with hashed from database
-    const isCorrectPassword = await bcrypt.compare(req.body.password, hashed_password)
+    try {
+        if (!req.body.email) {
+            throw "noEmail"
+        }
 
-    if(isCorrectPassword){
-        req.session.isLoggedIn = true
-        req.session.userId = id
+        if(!req.body.password){
+            throw "noPassword"
+        }
+        //gets hashed password from db
+        const result = await db.get("SELECT id, hashed_password FROM users where email=$email", {
+            $email: req.body.email
+        })
 
-        res.send({isLoggedIn: true})
-    } else {
-        //stuff to do if login is unsuccessful maybe this should be a try/catch?
-        res.send({error: "incorrectPassword"})
+        if(!result){
+            throw "badEmail"
+        }
+
+        //compares input password with hashed from database
+        const isCorrectPassword = await bcrypt.compare(req.body.password, result.hashed_password)
+
+        if (isCorrectPassword) {
+            req.session.isLoggedIn = true
+            req.session.userId = result.id
+
+            res.status(200).send({ isLoggedIn: true })
+        } else {
+            //stuff to do if login is unsuccessful maybe this should be a try/catch?
+            throw "incorrectPassword"
+        }
+    } catch (error) {
+        switch (error) {
+            case "noEmail":
+                return res.status(400).send({msg: "noEmail"})
+            case "badEmail":
+                return res.status(400).send({msg: "badEmail"})
+            case "noPassword":
+                return res.status(400).send({msg: "noPassword"})
+            case "incorrectPassword":
+                return res.status(400).send({ msg: "incorrectPassword" })
+
+            default:
+                return res.status(500).send({})
+        }
     }
 })
 
 router.post("/logout", (req, res) => {
     req.session.destroy()
-    res.send({isLoggedIn: false})
+    res.send({ isLoggedIn: false })
 })
 export default router
