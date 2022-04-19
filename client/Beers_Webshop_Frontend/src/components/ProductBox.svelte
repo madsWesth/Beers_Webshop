@@ -1,5 +1,12 @@
 <script>
-    export let productInfo;
+    import { cart } from "../stores/user.js"
+
+
+    export let productInfo
+
+    const addToCart = () => {
+        $cart = [...$cart, productInfo]
+    }
 </script>
 
 <div class="product-card">
@@ -9,7 +16,7 @@
         <p id="tagline">{productInfo.tagline}</p>
         <div class="buy-section">
             <p class="price">{productInfo.price}.00 DKK</p>
-            <button>Add to cart</button>
+            <button on:click={addToCart}>Add to cart</button>
         </div>
     </div>
 </div>

@@ -1,10 +1,12 @@
 <script>
     import { onMount } from "svelte";
     import ProductBox from "../components/ProductBox.svelte"
-    	let products = [];
+import { backendURL } from "../stores/general";
+
+    let products = [];
 
     onMount(async () => {
-        const res = await fetch("http://localhost:3000/beers");
+        const res = await fetch($backendURL + "beers");
         products = await res.json()
     })
 </script>
