@@ -24,7 +24,7 @@ import { backendURL } from "../stores/general";
     .wrapper{
         display: flex;
         justify-content: center;
-        width: 100vw;
+        width: 97vw;
     }
 
     #product-grid {

@@ -77,7 +77,7 @@
 	}
 
 	main{
-		min-height: calc(100vh - 3em);
+		min-height: calc(100vh - 2.8em);
 	}
 
 	footer{
