@@ -17,6 +17,7 @@
                 const response = await fetch($backendURL + "auth/login", {
                     method: "POST",
                     mode: "cors",
+                    credentials: "include",
                     headers: {
                         "Content-Type": "application/json",
                     },

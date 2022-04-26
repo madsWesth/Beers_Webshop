@@ -10,7 +10,10 @@ const app = express()
 app.use(express.json())
 
 import cors from "cors"
-app.use(cors())
+app.use(cors({
+	origin: "http://localhost:8080",
+	credentials: true,
+}))
 
 //session for auth
 import session from "express-session";
@@ -20,6 +23,7 @@ app.use(session({
 	rolling: false,
 	saveUninitialized: false,
 	cookie: {
+		httpOnly: true,
 		maxAge: 10 * 60 * 1000,
 		secure: false
 	}
@@ -43,6 +47,8 @@ app.use("/auth", accountRouter)
 
 app.get("/beers", async (req, res) => {
     const result = await db.all("SELECT * FROM beers")
+	console.log(req.session.isLoggedIn)
+	console.log(req.sessionID)
     res.send(result)
 })
 

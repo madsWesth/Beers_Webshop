@@ -3,9 +3,11 @@
 
     $: total = $cart.reduce((a ,b) => a + b.price, 0)
 
+    console.log($cart.length)
+
 </script>
 
-{#if !$cart.length === 0}
+{#if $cart.length > 0}
     <table>
         <tr>
             <th>img</th>
@@ -23,6 +25,8 @@
         {/each}
     </table>
     <h3>Total: {Number(total)}</h3>
+
+    <button on:click={() => cart.set([])}>Reset cart</button>
 
 {:else}
     <h2>Cart is empty</h2>

@@ -6,7 +6,9 @@ import { backendURL } from "../stores/general";
     let products = [];
 
     onMount(async () => {
-        const res = await fetch($backendURL + "beers");
+        const res = await fetch($backendURL + "beers",
+        //{credentials: "include"}
+        );
         products = await res.json()
     })
 </script>
